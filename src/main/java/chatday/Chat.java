@@ -6,6 +6,8 @@ import ioc.util.BeanLoaderException;
 import java.util.HashMap;
 import java.util.Map;
 
+import chatday.server.ChatServer;
+
 public class Chat {
 	public static final String SERVER_HOST = "10.108.211.36";
 	public static final int SERVER_PORT = 2345;

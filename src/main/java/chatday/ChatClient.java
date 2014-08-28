@@ -35,4 +35,8 @@ public class ChatClient implements Runnable {
 			e.printStackTrace();
 		}
 	}
+	
+	public static void main(String[] args) {
+		new Thread(new ChatClient()).start();
+	}
 }
