@@ -12,8 +12,6 @@ import java.util.Set;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-import chatday.server.ChatServer.Connection;
-
 @Component
 @Singleton
 public class ReadHandler implements Runnable {
@@ -37,7 +35,7 @@ public class ReadHandler implements Runnable {
 		try {
 			sk = socketChannel.register(readSelector, SelectionKey.OP_READ);
 		} catch (ClosedChannelException e) {
-			e.printStackTrace();
+			throw new ServerException("向select注册read事件失败", e);
 		} finally {
 			finishRegisterChannel();
 		}
@@ -54,33 +52,36 @@ public class ReadHandler implements Runnable {
 		this.notify();
 	}
 
+	private synchronized void waitChannelRegister() {
+		while (adding) {
+			try {
+				this.wait();
+			} catch (InterruptedException e) {
+				throw new ServerException("向select注册read事件失败", e);
+			}
+		}
+	}
+
 	@Override
 	public void run() {
 		while (ChatServer.isRunning) {
 			try {
 				readSelector.select();
-				synchronized (this) {
-					while (adding)
-						try {
-							this.wait();
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-				}
-				Set<SelectionKey> selectKeys = readSelector.selectedKeys();
-				for (SelectionKey sk : selectKeys) {
-					if (sk.isReadable()) {
-						Connection conn = (Connection) sk.attachment();
-						boolean isReadOver = conn.readMessage();
-						if (isReadOver) {
-							Message msg = conn.getMessage();
-							conn.setMessage(new Message());
-							broadcastHandler.addMessage(msg);
-						}
+			} catch (IOException e) {
+				throw new ServerException("read监听失败", e);
+			}
+			waitChannelRegister();
+			Set<SelectionKey> selectKeys = readSelector.selectedKeys();
+			for (SelectionKey sk : selectKeys) {
+				if (sk.isReadable()) {
+					Connection conn = (Connection) sk.attachment();
+					boolean isReadOver = conn.readMessage();
+					if (isReadOver) {
+						Message msg = conn.getMsg();
+						conn.setMessage(new Message());
+						broadcastHandler.addMessage(msg);
 					}
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
 			}
 		}
 	}

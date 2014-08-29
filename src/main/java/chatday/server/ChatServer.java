@@ -22,12 +22,11 @@ public class ChatServer implements Runnable {
 	private Selector acceptSelector;
 	static volatile boolean isRunning = true;
 
-	@Inject
 	private ReadHandler readHandler;
-	@Inject
 	private BroadcastHandler broadcastHandler;
 
-	public ChatServer() {
+	@Inject
+	public ChatServer(ReadHandler readHandler, BroadcastHandler broadcastHandler) {
 		try {
 			acceptSelector = Selector.open();
 			ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
@@ -35,8 +34,10 @@ public class ChatServer implements Runnable {
 			serverSocketChannel.register(acceptSelector, SelectionKey.OP_ACCEPT);
 			serverSocketChannel.socket().bind(new InetSocketAddress(Chat.SERVER_PORT));
 		} catch (IOException e) {
-			e.printStackTrace();
+			throw new ServerException("chat server初始化失败", e);
 		}
+		this.readHandler = readHandler;
+		this.broadcastHandler = broadcastHandler;
 		new Thread(readHandler).start();
 		new Thread(broadcastHandler).start();
 	}
@@ -46,13 +47,13 @@ public class ChatServer implements Runnable {
 		while (isRunning) {
 			try {
 				acceptSelector.select();
-				Set<SelectionKey> selectKeys = acceptSelector.selectedKeys();
-				for (SelectionKey sk : selectKeys) {
-					if (sk.isAcceptable())
-						doAccept(sk);
-				}
 			} catch (IOException e) {
-				e.printStackTrace();
+				throw new ServerException("accept监听失败", e);
+			}
+			Set<SelectionKey> selectKeys = acceptSelector.selectedKeys();
+			for (SelectionKey sk : selectKeys) {
+				if (sk.isAcceptable())
+					doAccept(sk);
 			}
 		}
 	}
@@ -68,78 +69,8 @@ public class ChatServer implements Runnable {
 			sKey.attach(conn);
 			broadcastHandler.addConnection(conn);
 		} catch (IOException e) {
+			// 当前连接服务器的socketchannel发生异常，跳过该异常就行了
 			e.printStackTrace();
-		}
-	}
-
-	static class Connection {
-		String uname;
-		Message message;
-		SocketChannel sckChannel;
-
-		/**
-		 * 
-		 * @param sckChannel
-		 *            此时的sckChannel是阻塞的
-		 */
-		public Connection(SocketChannel sckChannel) {
-			message = new Message();
-			this.sckChannel = sckChannel;
-			readUserName();
-		}
-
-		/**
-		 * 从socket channel 中读消息
-		 * 
-		 * @return 是否读完
-		 */
-		public boolean readMessage() {
-			return message.readMessageFromSocketChannel(sckChannel);
-		}
-
-		private void readUserName() {
-			try {
-				ByteBuffer unameLenBuf = ByteBuffer.allocate(4);
-				int count = sckChannel.write(unameLenBuf);
-				while (count != 4) {
-					count += sckChannel.write(unameLenBuf);
-				}
-				unameLenBuf.flip();
-				int unameLen = unameLenBuf.asIntBuffer().get();
-				ByteBuffer unameBuf = ByteBuffer.allocate(unameLen);
-				count = sckChannel.write(unameBuf);
-				while (count != unameLen) {
-					count += sckChannel.write(unameBuf);
-				}
-				unameBuf.flip();
-				uname = unameBuf.asCharBuffer().toString();
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-		}
-
-		public Message getMessage() {
-			return message;
-		}
-
-		public void setMessage(Message message) {
-			this.message = message;
-		}
-
-		public String getUname() {
-			return uname;
-		}
-
-		public void setUname(String uname) {
-			this.uname = uname;
-		}
-
-		public SocketChannel getSckChannel() {
-			return sckChannel;
-		}
-
-		public void setSckChannel(SocketChannel sckChannel) {
-			this.sckChannel = sckChannel;
 		}
 	}
 
