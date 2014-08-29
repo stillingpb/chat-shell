@@ -35,7 +35,7 @@ public class ReadHandler implements Runnable {
 		try {
 			sk = socketChannel.register(readSelector, SelectionKey.OP_READ);
 		} catch (ClosedChannelException e) {
-			throw new ServerException("向select注册read事件失败", e);
+			throw new ServerRuntimeException("向select注册read事件失败", e);
 		} finally {
 			finishRegisterChannel();
 		}
@@ -57,7 +57,7 @@ public class ReadHandler implements Runnable {
 			try {
 				this.wait();
 			} catch (InterruptedException e) {
-				throw new ServerException("向select注册read事件失败", e);
+				throw new ServerRuntimeException("向select注册read事件失败", e);
 			}
 		}
 	}
@@ -68,18 +68,22 @@ public class ReadHandler implements Runnable {
 			try {
 				readSelector.select();
 			} catch (IOException e) {
-				throw new ServerException("read监听失败", e);
+				throw new ServerRuntimeException("read监听失败", e);
 			}
 			waitChannelRegister();
 			Set<SelectionKey> selectKeys = readSelector.selectedKeys();
 			for (SelectionKey sk : selectKeys) {
 				if (sk.isReadable()) {
 					Connection conn = (Connection) sk.attachment();
-					boolean isReadOver = conn.readMessage();
-					if (isReadOver) {
-						Message msg = conn.getMsg();
-						conn.setMessage(new Message());
-						broadcastHandler.addMessage(msg);
+					try {
+						boolean isReadOver = conn.readMessage();
+						if (isReadOver) {
+							Message msg = conn.getMsg();
+							conn.setMessage(new Message());
+							broadcastHandler.addMessage(msg);
+						}
+					} catch (ServerException e) { // channel损坏，需要从selector中移除
+						sk.cancel();
 					}
 				}
 			}

@@ -6,7 +6,6 @@ import ioc.util.BeanLoaderException;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.ServerSocketChannel;
@@ -34,7 +33,7 @@ public class ChatServer implements Runnable {
 			serverSocketChannel.register(acceptSelector, SelectionKey.OP_ACCEPT);
 			serverSocketChannel.socket().bind(new InetSocketAddress(Chat.SERVER_PORT));
 		} catch (IOException e) {
-			throw new ServerException("chat server初始化失败", e);
+			throw new ServerRuntimeException("chat server初始化失败", e);
 		}
 		this.readHandler = readHandler;
 		this.broadcastHandler = broadcastHandler;
@@ -48,7 +47,7 @@ public class ChatServer implements Runnable {
 			try {
 				acceptSelector.select();
 			} catch (IOException e) {
-				throw new ServerException("accept监听失败", e);
+				throw new ServerRuntimeException("accept监听失败", e);
 			}
 			Set<SelectionKey> selectKeys = acceptSelector.selectedKeys();
 			for (SelectionKey sk : selectKeys) {

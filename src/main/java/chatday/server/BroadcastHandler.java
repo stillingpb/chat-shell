@@ -10,7 +10,6 @@ import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -20,23 +19,24 @@ import javax.inject.Singleton;
 @Singleton
 public class BroadcastHandler implements Runnable {
 
-	LinkedBlockingQueue<Message> msgQueue;
+	private LinkedBlockingQueue<Message> msgQueue;
 	/**
 	 * 当前已连接的connection集.
 	 */
-	Map<Connection, Integer> curConnections;// <connection, msg已写出字节数>
-	/**
-	 * 两轮message消息发送中间，新添加的connection.
-	 */
-	Map<Connection, Integer> newConnections; // <connection, msg已写出字节数>
-	Selector broadcastSelector;
+	private Map<Connection, Integer> curConnections;// <connection, msg已写出字节数>
+	// /**
+	// * 两轮message消息发送中间，新添加的connection.
+	// */
+	// private Map<Connection, Integer> newConnections; // <connection,
+	// msg已写出字节数>
+	private Selector broadcastSelector;
 
 	private volatile boolean adding;
 
 	public BroadcastHandler() {
 		this.msgQueue = new LinkedBlockingQueue<Message>();
 		curConnections = new HashMap<Connection, Integer>();
-		newConnections = new HashMap<Connection, Integer>();
+		// newConnections = new HashMap<Connection, Integer>();
 		try {
 			broadcastSelector = Selector.open();
 		} catch (IOException e) {
@@ -45,14 +45,12 @@ public class BroadcastHandler implements Runnable {
 	}
 
 	public void addConnection(Connection conn) {
-		synchronized (newConnections) {
-			newConnections.put(conn, 0);
-		}
 		startRegisterChannel();
 		try {
 			conn.getSckChannel().register(broadcastSelector, SelectionKey.OP_WRITE, conn);
+			curConnections.put(conn, 0);
 		} catch (ClosedChannelException e) {
-			throw new ServerException("向select注册write事件失败", e);
+			throw new ServerRuntimeException("向select注册write事件失败", e);
 		} finally {
 			finishRegisterChannel();
 		}
@@ -61,10 +59,6 @@ public class BroadcastHandler implements Runnable {
 	private void updateConnections() {
 		for (Connection conn : curConnections.keySet())
 			curConnections.put(conn, 0);
-		synchronized (newConnections) {
-			curConnections.putAll(newConnections);
-			newConnections.clear();
-		}
 	}
 
 	private void startRegisterChannel() {
@@ -82,7 +76,7 @@ public class BroadcastHandler implements Runnable {
 			try {
 				this.wait();
 			} catch (InterruptedException e) {
-				throw new ServerException("向select注册write事件失败", e);
+				throw new ServerRuntimeException("向select注册write事件失败", e);
 			}
 		}
 	}
@@ -98,7 +92,7 @@ public class BroadcastHandler implements Runnable {
 			try {
 				msg = msgQueue.take();
 			} catch (InterruptedException e) {
-				throw new ServerException("获取待发送msg失败", e);
+				throw new ServerRuntimeException("获取待发送msg失败", e);
 			}
 			processMessage(msg);
 			updateConnections();
@@ -111,7 +105,6 @@ public class BroadcastHandler implements Runnable {
 	 * @param msg
 	 */
 	private void processMessage(Message msg) {
-		int connCount = curConnections.size();
 		int sendOverCount = 0; // 记录发送消息完成的connection数
 		int totalLen = msg.getLen() + 4;
 		ByteBuffer lenBuf = msg.getLenBuf();
@@ -121,11 +114,11 @@ public class BroadcastHandler implements Runnable {
 		lenBuf.limit(4);
 		bodyBuf.limit(msg.getLen());
 
-		while (sendOverCount != connCount) {
+		while (sendOverCount < curConnections.size()) {
 			try {
 				broadcastSelector.select();
 			} catch (IOException e) {
-				throw new ServerException("broadcast发送失败", e);
+				throw new ServerRuntimeException("broadcast发送失败", e);
 			}
 			waitChannelRegister();
 			Set<SelectionKey> skSet = broadcastSelector.selectedKeys();
@@ -133,10 +126,15 @@ public class BroadcastHandler implements Runnable {
 				Connection conn = (Connection) sk.attachment();
 				int offset = curConnections.get(conn);
 				if (sk.isWritable() && offset < totalLen) {
-					offset += sendMessage(conn, lenBuf, bodyBuf, offset);
-					curConnections.put(conn, offset);
-					if (offset == totalLen) {
-						sendOverCount++;
+					try {
+						offset += sendMessage(conn, lenBuf, bodyBuf, offset);
+						curConnections.put(conn, offset);
+						if (offset == totalLen) {
+							sendOverCount++;
+						}
+					} catch (ServerException e) {// channel损坏，需要从selector中移除
+						curConnections.remove(conn);
+						sk.cancel();
 					}
 				}
 			}
@@ -150,25 +148,23 @@ public class BroadcastHandler implements Runnable {
 	 * @param bodyBuf
 	 * @param offset
 	 * @return 返回发送的字节数
+	 * @throws ServerException
 	 */
-	private int sendMessage(Connection conn, ByteBuffer lenBuf, ByteBuffer bodyBuf, int offset) {
+	private int sendMessage(Connection conn, ByteBuffer lenBuf, ByteBuffer bodyBuf, int offset)
+			throws ServerException {
 		int count = 0;
 		SocketChannel skChannel = conn.getSckChannel();
-		if (offset < 4) {
-			lenBuf.position(offset);// 从offset处开始读数据
-			try {
+		try {
+			if (offset < 4) {
+				lenBuf.position(offset);// 从offset处开始读数据
 				count = skChannel.write(lenBuf);
-			} catch (IOException e) {
-				throw new ServerException("broadcast发送失败", e);
 			}
-		}
-		if (offset + count >= 4) {
-			bodyBuf.position(offset + count - 4);// 从(offset+count-4)处开始读数据
-			try {
+			if (offset + count >= 4) {
+				bodyBuf.position(offset + count - 4);// 从(offset+count-4)处开始读数据
 				count += skChannel.write(bodyBuf);
-			} catch (IOException e) {
-				throw new ServerException("broadcast发送失败", e);
 			}
+		} catch (IOException e) {
+			throw new ServerException("broadcast发送失败", e);
 		}
 		return count;
 	}

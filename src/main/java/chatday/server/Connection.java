@@ -16,7 +16,7 @@ public class Connection {
 	public Connection(SocketChannel sckChannel) {
 		msg = new Message();
 		this.sckChannel = sckChannel;
-		readUserName();
+//		readUserName();
 	}
 
 	/**
@@ -39,7 +39,7 @@ public class Connection {
 			unameBuf.flip();
 			uname = unameBuf.asCharBuffer().toString();
 		} catch (IOException e) {
-			throw new ServerException("读取连接相关消息发生异常", e);
+			throw new ServerRuntimeException("读取连接相关消息发生异常", e);
 		}
 	}
 
@@ -52,8 +52,9 @@ public class Connection {
 	 * 从socket channel 中读消息
 	 * 
 	 * @return 读完一条数据，返回true，没读完，返回false
+	 * @throws ServerException
 	 */
-	public boolean readMessage() {
+	public boolean readMessage() throws ServerException {
 		boolean isReadOver = readMessageFromSocketChannel(sckChannel, msg.getLenBuf(),
 				msg.getBodyBuf());
 
@@ -70,9 +71,10 @@ public class Connection {
 	 * 
 	 * @param sckChannel
 	 * @return 读完一条数据，返回true，没读完，返回false
+	 * @throws ServerException
 	 */
 	public boolean readMessageFromSocketChannel(SocketChannel sckChannel, ByteBuffer lenBuf,
-			ByteBuffer bodyBuf) {
+			ByteBuffer bodyBuf) throws ServerException {
 		try {
 			if (msgLenCount < 4)
 				msgLenCount += sckChannel.read(lenBuf);
