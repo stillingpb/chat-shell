@@ -17,7 +17,7 @@ public class ChatClient implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Socket socket = new Socket(Chat.SERVER_HOST, Chat.SERVER_PORT);
+			Socket socket = new Socket(Chat.SERVER_HOST, Chat.SERVER_MSG_PORT);
 			DataOutputStream dataOut = new DataOutputStream(socket.getOutputStream());
 			Scanner consoleReader = new Scanner(System.in);
 			System.out.print("\nchat > ");

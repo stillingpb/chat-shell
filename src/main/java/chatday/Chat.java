@@ -6,11 +6,12 @@ import ioc.util.BeanLoaderException;
 import java.util.HashMap;
 import java.util.Map;
 
-import chatday.server.ChatServer;
+import chatday.msg.MsgServer;
 
 public class Chat {
 	public static final String SERVER_HOST = "10.108.211.36";
-	public static final int SERVER_PORT = 2345;
+	public static final int SERVER_MSG_PORT = 2345;
+	public static final int SERVER_RPC_PORT = 2346;
 
 	private static String pck[] = { "chatday" };
 	private static PraticalBeanFactory beanFactory = new PraticalBeanFactory(pck);
@@ -21,7 +22,7 @@ public class Chat {
 		alias = new HashMap<String, Class<? extends Runnable>>();
 		alias.put("c", ChatClient.class);
 		alias.put("m", ChatMonitor.class);
-		alias.put("s", ChatServer.class);
+		alias.put("s", MsgServer.class);
 
 		usage = "correct usage : chat [param]\n" + "param:\n" + "c : Client\n" + "m : Monitor\n"
 				+ "s : Server";

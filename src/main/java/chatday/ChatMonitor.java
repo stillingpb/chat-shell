@@ -16,7 +16,7 @@ public class ChatMonitor implements Runnable {
 	@Override
 	public void run() {
 		try {
-			Socket socket = new Socket(Chat.SERVER_HOST, Chat.SERVER_PORT);
+			Socket socket = new Socket(Chat.SERVER_HOST, Chat.SERVER_MSG_PORT);
 			DataInputStream dataIn = new DataInputStream(socket.getInputStream());
 			SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm");
 			while (isRunning) {
