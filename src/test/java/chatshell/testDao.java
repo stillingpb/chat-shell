@@ -1,4 +1,4 @@
-package chatday;
+package chatshell;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -14,7 +14,7 @@ import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
-import chatday.io.MessageWritable;
+import chatshell.io.MessageWritable;
 
 public class testDao {
 	private SqlSessionFactory sqlMapper;
@@ -36,7 +36,7 @@ public class testDao {
 		SqlSession session = sqlMapper.openSession();
 		int result = 0;
 		try {
-			result = session.insert("chatday.dao.MessageDao.addMessage", new MessageWritable(255,
+			result = session.insert("chatshell.dao.MessageDao.addMessage", new MessageWritable(255,
 					"pb", "love you"));
 			session.commit();
 		} finally {
@@ -49,7 +49,7 @@ public class testDao {
 	public void testFindLatestMessage() {
 		SqlSession session = sqlMapper.openSession();
 		List<MessageWritable> list = session.selectList(
-				"chatday.dao.MessageDao.findLatestMessageByTime", 235);
+				"chatshell.dao.MessageDao.findLatestMessageByTime", 235);
 		assertNotEquals(list.size(), 0);
 		System.out.println(list);
 	}

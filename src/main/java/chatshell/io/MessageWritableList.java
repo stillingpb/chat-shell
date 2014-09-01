@@ -1,4 +1,4 @@
-package chatday.io;
+package chatshell.io;
 
 import java.io.DataInput;
 import java.io.DataOutput;
@@ -11,6 +11,9 @@ import rpc.io.Writable;
 public class MessageWritableList implements Writable {
 
 	private List<MessageWritable> msgList;
+
+	public MessageWritableList() {
+	}
 
 	public MessageWritableList(List<MessageWritable> msgList) {
 		this.msgList = msgList;

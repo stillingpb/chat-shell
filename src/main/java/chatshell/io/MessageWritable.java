@@ -1,4 +1,4 @@
-package chatday.io;
+package chatshell.io;
 
 import java.io.DataInput;
 import java.io.DataOutput;

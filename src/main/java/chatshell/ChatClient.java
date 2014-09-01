@@ -1,4 +1,4 @@
-package chatday;
+package chatshell;
 
 import ioc.annotation.Component;
 

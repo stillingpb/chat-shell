@@ -1,8 +1,8 @@
-package chatday.dao;
+package chatshell.dao;
 
 import java.util.List;
 
-import chatday.io.MessageWritable;
+import chatshell.io.MessageWritable;
 
 /**
  * 

@@ -1,4 +1,4 @@
-package chatday;
+package chatshell;
 
 import ioc.PraticalBeanFactory;
 import ioc.util.BeanLoaderException;
@@ -6,14 +6,14 @@ import ioc.util.BeanLoaderException;
 import java.util.HashMap;
 import java.util.Map;
 
-import chatday.msgserver.MsgServer;
+import chatshell.msgserver.MsgServer;
 
 public class Chat {
 	public static final String SERVER_HOST = "10.108.211.36";
 	public static final int SERVER_MSG_PORT = 2345;
 	public static final int SERVER_RPC_PORT = 2346;
 
-	private static String pck[] = { "chatday" };
+	private static String pck[] = { "chatshell" };
 	private static PraticalBeanFactory beanFactory = new PraticalBeanFactory(pck);
 
 	private static Map<String, Class<? extends Runnable>> alias;

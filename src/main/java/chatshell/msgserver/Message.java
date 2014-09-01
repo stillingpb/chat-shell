@@ -1,4 +1,4 @@
-package chatday.msgserver;
+package chatshell.msgserver;
 
 import java.nio.ByteBuffer;
 

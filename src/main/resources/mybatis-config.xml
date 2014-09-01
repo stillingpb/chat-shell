@@ -7,13 +7,13 @@
 			<transactionManager type="JDBC" />
 			<dataSource type="POOLED">
 				<property name="driver" value="com.mysql.jdbc.Driver"></property>
-				<property name="url" value="jdbc:mysql://localhost:3306/chatday"></property>
+				<property name="url" value="jdbc:mysql://localhost:3306/chatshell"></property>
 				<property name="username" value="root"></property>
 				<property name="password" value="123321"></property>
 			</dataSource>
 		</environment>
 	</environments>
 	<mappers>
-		<mapper resource="chatday/dao/MessageDaoMapper.xml" />
+		<mapper resource="MessageDaoMapper.xml" />
 	</mappers>
 </configuration>

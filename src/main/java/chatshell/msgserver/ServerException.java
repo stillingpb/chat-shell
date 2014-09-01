@@ -1,4 +1,4 @@
-package chatday.msgserver;
+package chatshell.msgserver;
 
 public class ServerException extends Exception {
 	public ServerException(String msg, Exception e) {

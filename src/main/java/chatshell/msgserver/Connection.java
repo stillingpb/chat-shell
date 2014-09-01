@@ -1,4 +1,4 @@
-package chatday.msgserver;
+package chatshell.msgserver;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;

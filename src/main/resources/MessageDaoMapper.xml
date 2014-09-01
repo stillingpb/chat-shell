@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8" ?>  
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="chatday.dao.MessageDao">
-	<insert id="addMessage" parameterType="chatday.io.MessageWritable">
+<mapper namespace="chatshell.dao.MessageDao">
+	<insert id="addMessage" parameterType="chatshell.io.MessageWritable">
 		insert into msg (sendtime,
 		username, info) values (#{sendTime},#{userName},#{msg})
 	</insert>
 	<select id="findLatestMessageByTime" parameterType="long"
-		resultType="chatday.io.MessageWritable">
+		resultType="chatshell.io.MessageWritable">
 		select username as userName,sendtime as sendTime, info as
 		msg from msg where sendtime >= ${_parameter}
 	</select>

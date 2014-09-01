@@ -1,4 +1,4 @@
-package chatday.rpcserver;
+package chatshell.rpcserver;
 
 public class RPCServer {
 

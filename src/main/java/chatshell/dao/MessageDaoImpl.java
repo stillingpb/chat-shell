@@ -1,4 +1,4 @@
-package chatday.dao;
+package chatshell.dao;
 
 import ioc.annotation.Component;
 
@@ -13,7 +13,7 @@ import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 
-import chatday.io.MessageWritable;
+import chatshell.io.MessageWritable;
 
 @Component
 @Named("messageDaoImpl")
@@ -35,7 +35,7 @@ public class MessageDaoImpl implements MessageDao {
 		SqlSession session = sqlMapper.openSession();
 		int result = 0;
 		try {
-			result = session.insert("chatday.dao.MessageDao.addMessage", new MessageWritable(255,
+			result = session.insert("chatshell.dao.MessageDao.addMessage", new MessageWritable(255,
 					"pb", "love you"));
 			session.commit();
 			return result == 1;
@@ -49,7 +49,7 @@ public class MessageDaoImpl implements MessageDao {
 		SqlSession session = sqlMapper.openSession();
 		try {
 			List<MessageWritable> list = session.selectList(
-					"chatday.dao.MessageDao.findLatestMessageByTime", beginTime);
+					"chatshell.dao.MessageDao.findLatestMessageByTime", beginTime);
 			return list;
 		} finally {
 			session.close();

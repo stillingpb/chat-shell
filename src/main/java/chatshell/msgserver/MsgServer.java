@@ -1,4 +1,4 @@
-package chatday.msgserver;
+package chatshell.msgserver;
 
 import ioc.PraticalBeanFactory;
 import ioc.annotation.Component;
@@ -14,7 +14,7 @@ import java.util.Set;
 
 import javax.inject.Inject;
 
-import chatday.Chat;
+import chatshell.Chat;
 
 @Component
 public class MsgServer implements Runnable {
@@ -74,7 +74,7 @@ public class MsgServer implements Runnable {
 	}
 
 	public static void main(String[] args) throws BeanLoaderException {
-		String pck[] = { "chatday" };
+		String pck[] = { "chatshell" };
 		PraticalBeanFactory beanFactory = new PraticalBeanFactory(pck);
 		MsgServer chatServer = beanFactory.getBean(MsgServer.class);
 		new Thread(chatServer).start();
