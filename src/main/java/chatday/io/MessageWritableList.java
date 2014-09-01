@@ -12,6 +12,10 @@ public class MessageWritableList implements Writable {
 
 	private List<MessageWritable> msgList;
 
+	public MessageWritableList(List<MessageWritable> msgList) {
+		this.msgList = msgList;
+	}
+
 	@Override
 	public void write(DataOutput out) throws IOException {
 		out.writeInt(msgList.size());
@@ -30,4 +34,11 @@ public class MessageWritableList implements Writable {
 		}
 	}
 
+	public List<MessageWritable> getMsgList() {
+		return msgList;
+	}
+
+	public void setMsgList(List<MessageWritable> msgList) {
+		this.msgList = msgList;
+	}
 }

@@ -6,7 +6,7 @@ import ioc.util.BeanLoaderException;
 import java.util.HashMap;
 import java.util.Map;
 
-import chatday.msg.MsgServer;
+import chatday.msgserver.MsgServer;
 
 public class Chat {
 	public static final String SERVER_HOST = "10.108.211.36";
