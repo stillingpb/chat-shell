@@ -13,11 +13,15 @@ import java.nio.channels.SocketChannel;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import chatshell.Chat;
+import chatshell.ChatServer;
 
 @Component
+@Singleton
 public class MsgServer implements Runnable {
+
 	private Selector acceptSelector;
 	static volatile boolean isRunning = true;
 
@@ -76,7 +80,7 @@ public class MsgServer implements Runnable {
 	public static void main(String[] args) throws BeanLoaderException {
 		String pck[] = { "chatshell" };
 		PraticalBeanFactory beanFactory = new PraticalBeanFactory(pck);
-		MsgServer chatServer = beanFactory.getBean(MsgServer.class);
-		new Thread(chatServer).start();
+		MsgServer msgServer = beanFactory.getBean(MsgServer.class);
+		new Thread(msgServer).start();
 	}
 }

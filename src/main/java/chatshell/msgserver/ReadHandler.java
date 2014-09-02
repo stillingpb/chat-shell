@@ -10,13 +10,22 @@ import java.nio.channels.SocketChannel;
 import java.util.Set;
 
 import javax.inject.Inject;
+import javax.inject.Named;
 import javax.inject.Singleton;
+
+import chatshell.dao.MessageDao;
+import chatshell.io.MessageWritable;
+import chatshell.io.SerializeUtil;
 
 @Component
 @Singleton
 public class ReadHandler implements Runnable {
 	private Selector readSelector;
 	private volatile boolean adding;
+
+	@Inject
+	@Named("MessageDaoImpl")
+	MessageDao msgDao;
 
 	@Inject
 	private BroadcastHandler broadcastHandler;
@@ -80,6 +89,7 @@ public class ReadHandler implements Runnable {
 						if (isReadOver) {
 							Message msg = conn.getMsg();
 							conn.setMessage(new Message());
+							storeMessageToDataBase(msg);
 							broadcastHandler.addMessage(msg);
 						}
 					} catch (ServerException e) { // channel损坏，需要从selector中移除
@@ -88,5 +98,11 @@ public class ReadHandler implements Runnable {
 				}
 			}
 		}
+	}
+
+	private void storeMessageToDataBase(Message msg) {
+		byte[] bytes = msg.getBodyBuf().array();
+		MessageWritable msgWritable = SerializeUtil.deserializeObj(bytes, new MessageWritable());
+		msgDao.addMessage(msgWritable);
 	}
 }

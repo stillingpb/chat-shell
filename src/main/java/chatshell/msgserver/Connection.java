@@ -5,7 +5,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 public class Connection {
-	String uname; // head
 	SocketChannel sckChannel;
 
 	/**
@@ -57,14 +56,13 @@ public class Connection {
 				return false;
 			if (msgLenCount == 4) {
 				lenBuf.flip();
-				msgLen = lenBuf.asIntBuffer().get();
+				msgLen = lenBuf.getInt();
 				bodyBuf = ByteBuffer.allocate(msgLen);
 				msg.setBodyBuf(bodyBuf);
 				msgLenCount = 5; // large than 4
 			}
 			if (msgBodyCount < msgLen)
 				msgBodyCount += sckChannel.read(bodyBuf);
-			System.out.println(new String(bodyBuf.array()));
 		} catch (IOException e) {
 			throw new ServerException("读取message消息发生异常", e);
 		}
@@ -80,14 +78,6 @@ public class Connection {
 
 	public void setMessage(Message msg) {
 		this.msg = msg;
-	}
-
-	public String getUname() {
-		return uname;
-	}
-
-	public void setUname(String uname) {
-		this.uname = uname;
 	}
 
 	public SocketChannel getSckChannel() {

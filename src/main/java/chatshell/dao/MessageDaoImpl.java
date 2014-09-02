@@ -35,8 +35,7 @@ public class MessageDaoImpl implements MessageDao {
 		SqlSession session = sqlMapper.openSession();
 		int result = 0;
 		try {
-			result = session.insert("chatshell.dao.MessageDao.addMessage", new MessageWritable(255,
-					"pb", "love you"));
+			result = session.insert("chatshell.dao.MessageDao.addMessage", msg);
 			session.commit();
 			return result == 1;
 		} finally {
